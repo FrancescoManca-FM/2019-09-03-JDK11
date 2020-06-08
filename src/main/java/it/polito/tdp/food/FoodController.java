@@ -5,8 +5,10 @@
 package it.polito.tdp.food;
 
 import java.net.URL;
+import java.util.List;
 import java.util.ResourceBundle;
 import it.polito.tdp.food.model.Model;
+import it.polito.tdp.food.model.VicinoPeso;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -40,7 +42,7 @@ public class FoodController {
     private Button btnCammino; // Value injected by FXMLLoader
 
     @FXML // fx:id="boxPorzioni"
-    private ComboBox<?> boxPorzioni; // Value injected by FXMLLoader
+    private ComboBox<String> boxPorzioni; // Value injected by FXMLLoader
 
     @FXML // fx:id="txtResult"
     private TextArea txtResult; // Value injected by FXMLLoader
@@ -48,21 +50,61 @@ public class FoodController {
     @FXML
     void doCammino(ActionEvent event) {
     	txtResult.clear();
-    	txtResult.appendText("Cerco cammino peso massimo...");
+    	String nome = boxPorzioni.getValue();
+    	int passi = 0;
+    	if(nome=="" || txtPassi.getText()=="") {
+    		txtResult.appendText("Devi selezionare un tipo di porzione dal box e il numero di passi");
+    		return;
+    	}
+    	try {
+    		passi = Integer.parseInt(txtPassi.getText());
+    	}catch(NumberFormatException nfe) {
+    		nfe.printStackTrace();
+    		throw new RuntimeException("Puoi inserire solo numeri interi all'interno del campo N");
+    	}
+    	txtResult.appendText("Cerco cammino peso massimo iniziando da "+nome+"...");
+    	List<VicinoPeso> cammino = this.model.getCammino(passi, nome);
+    	for(VicinoPeso vp : cammino) {
+    		txtResult.appendText(vp.getVicino()+"\n");
+    	}
+    	txtResult.appendText("PESO TOTALE CAMMINO: "+this.model.pesoCammino(cammino));
+    	
+    	
     }
 
     @FXML
     void doCorrelate(ActionEvent event) {
     	txtResult.clear();
-    	txtResult.appendText("Cerco porzioni correlate...");
-    	
+    	String porzione = boxPorzioni.getValue();
+    	if(porzione==null) {
+    		txtResult.appendText("Devi selezionare un tipo di porzione!");
+    		return;
+    	}
+    	txtResult.appendText("Cerco porzioni correlate a "+porzione+"...\n");
+    	List<VicinoPeso> vicini = this.model.getVicini(porzione);
+    	for(VicinoPeso vp : vicini) {
+    		txtResult.appendText(vp.getVicino()+",  PESO: "+vp.getPeso()+"\n");
+    	}
     }
 
     @FXML
     void doCreaGrafo(ActionEvent event) {
     	txtResult.clear();
-    	txtResult.appendText("Creazione grafo...");
-    	
+    	txtResult.appendText("Creazione grafo...\n");
+    	int calorie = 0;
+    	if(txtCalorie.getText()=="") {
+    		txtResult.appendText("Devi inserire un numero nel campo calorie");
+    		return;
+    	}
+    	try {
+    		calorie = Integer.parseInt(txtCalorie.getText());
+    	}catch(NumberFormatException nfe) {
+    		nfe.printStackTrace();
+    		throw new RuntimeException("Devi inserire solo numeri interi");
+    	}
+    	this.model.creaGrafo(calorie);
+		txtResult.appendText("GRAFO CREATO CON SUCCESSO! \n # VERTICI: "+this.model.getSizeVertici()+"\n # ARCHI: "+this.model.getSizeArchi());
+		boxPorzioni.getItems().addAll(this.model.getVertexSet());
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete

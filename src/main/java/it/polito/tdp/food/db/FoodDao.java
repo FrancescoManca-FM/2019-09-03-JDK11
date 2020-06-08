@@ -6,6 +6,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+
+import it.polito.tdp.food.model.Adiacenza;
 import it.polito.tdp.food.model.Condiment;
 import it.polito.tdp.food.model.Food;
 import it.polito.tdp.food.model.Portion;
@@ -75,7 +77,7 @@ public class FoodDao {
 	}
 	
 	public List<Portion> listAllPortions(){
-		String sql = "SELECT * FROM portion" ;
+		String sql = "SELECT * FROM `portion`" ;
 		try {
 			Connection conn = DBConnect.getConnection() ;
 
@@ -109,6 +111,58 @@ public class FoodDao {
 
 	}
 	
+	public List<String> getPortionDisplayName(int calorie){
+		String sql = "SELECT p.portion_display_name as nomePorzione, COUNT(DISTINCT p.portion_id) " + 
+				"	FROM `portion` AS p " + 
+				"	WHERE p.calories<? " + 
+				"	GROUP BY p.portion_display_name " + 
+				"	HAVING COUNT(distinct p.portion_id)>0";
+		List<String> risultato = new ArrayList<>();
+		
+		try {
+			
+			Connection conn = DBConnect.getConnection();
+			PreparedStatement st = conn.prepareStatement(sql);
+			st.setInt(1, calorie);
+			
+			ResultSet rs = st.executeQuery();
+			
+			while(rs.next()) {
+				risultato.add(rs.getString("nomePorzione"));
+			}
+			conn.close();
+			return risultato;
+		}catch(SQLException e) {
+			e.printStackTrace();
+			throw new RuntimeException("Errore nel caricamento dati dal database");
+		}
+	}
 	
+	public List<Adiacenza> getAdiacenze(){
+		String sql = "SELECT distinct p1.portion_display_name AS nome1, p2.portion_display_name as nome2, COUNT(*) AS peso " + 
+				"FROM `portion` AS p1, `portion` AS p2 " + 
+				"WHERE p1.portion_display_name!=p2.portion_display_name AND " + 
+				"p1.food_code=p2.food_code AND p1.portion_display_name>p2.portion_display_name " + 
+				"GROUP BY p1.portion_display_name, p2.portion_display_name";
+		List<Adiacenza> risultato = new ArrayList<>();
+		
+		try {
+			Connection conn = DBConnect.getConnection();
+			PreparedStatement st = conn.prepareStatement(sql);
+			ResultSet rs = st.executeQuery();
+			
+			while(rs.next()) {
+				Adiacenza a = new Adiacenza(rs.getString("nome1"), rs.getString("nome2"), rs.getInt("peso"));
+				risultato.add(a);
+			}
+			
+			conn.close();
+			return risultato;
+							
+		}catch(SQLException e) {
+			e.printStackTrace();
+			throw new RuntimeException("ERRORE NEL CARICAMENTO DATI DAL DATABASE");
+		}
+	}
 
 }
