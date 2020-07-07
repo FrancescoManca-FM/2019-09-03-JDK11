@@ -114,7 +114,7 @@ public class FoodDao {
 	public List<String> getPortionDisplayName(int calorie){
 		String sql = "SELECT p.portion_display_name as nomePorzione, COUNT(DISTINCT p.portion_id) " + 
 				"	FROM `portion` AS p " + 
-				"	WHERE p.calories<? " + 
+				"	WHERE p.calories<=? " + 
 				"	GROUP BY p.portion_display_name " + 
 				"	HAVING COUNT(distinct p.portion_id)>0";
 		List<String> risultato = new ArrayList<>();
@@ -123,7 +123,7 @@ public class FoodDao {
 			
 			Connection conn = DBConnect.getConnection();
 			PreparedStatement st = conn.prepareStatement(sql);
-			st.setInt(1, calorie);
+			st.setDouble(1, calorie);
 			
 			ResultSet rs = st.executeQuery();
 			
@@ -139,7 +139,7 @@ public class FoodDao {
 	}
 	
 	public List<Adiacenza> getAdiacenze(){
-		String sql = "SELECT distinct p1.portion_display_name AS nome1, p2.portion_display_name as nome2, COUNT(*) AS peso " + 
+		String sql = "SELECT distinct p1.portion_display_name AS nome1, p2.portion_display_name as nome2, COUNT(DISTINCT p1.food_code) AS peso " + 
 				"FROM `portion` AS p1, `portion` AS p2 " + 
 				"WHERE p1.portion_display_name!=p2.portion_display_name AND " + 
 				"p1.food_code=p2.food_code AND p1.portion_display_name>p2.portion_display_name " + 

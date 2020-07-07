@@ -62,8 +62,13 @@ public class FoodController {
     		nfe.printStackTrace();
     		throw new RuntimeException("Puoi inserire solo numeri interi all'interno del campo N");
     	}
-    	txtResult.appendText("Cerco cammino peso massimo iniziando da "+nome+"...");
+
+    	txtResult.appendText("Cerco cammino peso massimo iniziando da "+nome+"...\n");
     	List<VicinoPeso> cammino = this.model.getCammino(passi, nome);
+    	if(this.model.pesoCammino(cammino)==0) {
+    		txtResult.appendText("Non ho trovato un cammino di lunghezza "+passi);
+    		return;
+    	}
     	for(VicinoPeso vp : cammino) {
     		txtResult.appendText(vp.getVicino()+"\n");
     	}
